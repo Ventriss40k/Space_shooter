@@ -10,6 +10,8 @@ from PIL import Image
 
 
 pygame.init()
+pygame.mixer.init()
+pygame.mixer.set_num_channels(32)
 
 fps = pygame.time.Clock()
 user_screen_stats = pygame.display.Info()
@@ -40,7 +42,8 @@ class Button(pygame.sprite.Sprite):
         self.rect.centerx = self.pos[0]
         self.rect.centery = self.pos[1]
         self.mouse_pointed = False
-
+        self.hover_sound = pygame.mixer.Sound(r"sounds\button hover.wav")
+        self.hover_sound_played = False
     def update(self):
         self.rect.centerx = self.pos[0]
         self.rect.centery = self.pos[1]
@@ -55,12 +58,15 @@ class Button(pygame.sprite.Sprite):
         self.font_update()
         self.font = self.font_hover
         self.mouse_pointed = True
-
+        if self.hover_sound_played == False:
+            self.hover_sound.play()
+            self.hover_sound_played = True
 
     def mouse_hover_off(self):
         self.font_update()
         self.font = self.font_normal
         self.mouse_pointed = False
+        self.hover_sound_played = False
 
     def font_update(self):
         self.image = self.font.render(self.text, True, (pygame.color.Color("Green3")))
@@ -269,10 +275,12 @@ class BasicGun():
         self.damage = 25
         self.proj_size =(15,5)
         self.name = "Basic gun"
+        self.shot_sound = pygame.mixer.Sound(r"sounds\basic gun shot.wav")
     def shoot(self):
         if self.cooldown == 0:
             player_projectile_group.add(HorizontalProjectile(player.rect.centerx + player.rect.width//3, player.rect.centery, self.color, self.speed_x, self.speed_y, self.deviation_y, self.damage, self.proj_size))
             self.cooldown = self.cooldown_max
+            self.shot_sound.play()
     def update(self):
         if self.cooldown >0:
             self.cooldown -=1
@@ -289,10 +297,12 @@ class FastGun():
         self.damage = 10
         self.proj_size =(5,2)
         self.name = "Fast gun"
+        self.shot_sound = pygame.mixer.Sound(r"sounds\fast gun shot.wav")
     def shoot(self):
         if self.cooldown == 0:
             player_projectile_group.add(HorizontalProjectile(player.rect.centerx+ player.rect.width//3, player.rect.centery, self.color, self.speed_x, self.speed_y, self.deviation_y, self.damage,self.proj_size))
             self.cooldown = self.cooldown_max
+            self.shot_sound.play()
     def update(self):
         if self.cooldown >0:
             self.cooldown -=1
@@ -310,13 +320,16 @@ class DoubleBarrelGun():
         self.damage = 15
         self.proj_size =(12,4)
         self.name = "Twin gun"
+        self.shot_sound = pygame.mixer.Sound(r"sounds\doublebarelled gun shot.wav")
     def shoot(self):
         if self.cooldown == 0:
             if self.barrell == 1:
                 player_projectile_group.add(HorizontalProjectile(player.rect.centerx, player.rect.centery + self.barell_offset, self.color, self.speed_x, self.speed_y, self.deviation_y, self.damage, self.proj_size))
+                self.shot_sound.play()
                 self.barrell = 2
             elif self.barrell == 2:
                 player_projectile_group.add(HorizontalProjectile(player.rect.centerx, player.rect.centery - self.barell_offset, self.color, self.speed_x, self.speed_y, self.deviation_y, self.damage, self.proj_size))
+                self.shot_sound.play()
                 self.barrell = 1            
             self.cooldown = self.cooldown_max
     def update(self):
@@ -334,8 +347,10 @@ class SpreadGun():
         self.damage = 10
         self.proj_size =(3,3)
         self.name = "Spread gun"
+        self.shot_sound = pygame.mixer.Sound(r"sounds\basic gun shot.wav")
     def shoot(self):
         if self.cooldown == 0:
+            self.shot_sound.play()
             for i in range(10):
                 player_projectile_group.add(HorizontalProjectile(player.rect.centerx+ player.rect.width//3, player.rect.centery, self.color, self.speed_x, self.speed_y , self.deviation_y, self.damage, self.proj_size ))
 
@@ -765,6 +780,7 @@ class Enemy (pygame.sprite.Sprite):
         self.hp = 50
         self.spawn_distance = spawn_distance
         
+        self.shot_sound = pygame.mixer.Sound(r"sounds\enemy shot.wav")
 
         self.proj_color = pygame.Color("orchid2")
         self.proj_speed_x = -6
@@ -863,6 +879,7 @@ class Enemy (pygame.sprite.Sprite):
     def shoot(self):
         if self.gun_cooldown == 0:
             enemy_projectiles.add(HorizontalProjectile(self.rect.centerx, self.rect.centery, self.proj_color, self.proj_speed_x, self.proj_speed_y, self.proj_deviation_y, self.damage, self.proj_size))
+            self.shot_sound.play()
             self.gun_cooldown = self.gun_cooldown_max
         else:
             self.gun_cooldown -=1
@@ -923,6 +940,8 @@ class TorpedoCorvette(Enemy):
         self.turret_reload_progress = 0 
         self.target_state ="Left-top"
         self.torpedo_ammo = 3 
+
+        self.shot_sound = pygame.mixer.Sound(r"sounds\ac turret shot.wav")
         #additional parts
         self.radar_img = pygame.image.load("sprites\enemies\Torpedo corvette\Radar.png").convert_alpha()
         self.radar_img = pygame.transform.scale(self.radar_img,(self.radar_img.get_size()[0]//3 , self.radar_img.get_size()[1]//3))
@@ -1108,6 +1127,7 @@ class TorpedoCorvette(Enemy):
                 else:
                     y_sign = 0
                 enemy_projectiles.add(RoundProjectile(x_start, Y_start, x_percent, y_percent, x_sign, y_sign, 10, 10))
+                self.shot_sound.play()
                 self.turret_ammo -= 1
                 self.gun_cooldown = self.gun_cooldown_max
             else:
@@ -1180,6 +1200,9 @@ class Torpedo(pygame.sprite.Sprite):
         self.speed_y = speed_y
         self.damage = damage
         self.target = target
+        self.torpedo_launch_sound = pygame.mixer.Sound(r"sounds\homing missile launch.wav")
+        self.explosion_sound = pygame.mixer.Sound(r"sounds\torpedo explosion.wav")
+        self.torpedo_launch_sound.play()
     def update(self):
         if self.image_counter >= self.image_max_counter:
             self.image_counter = 0
@@ -1206,6 +1229,8 @@ class Torpedo(pygame.sprite.Sprite):
         
     def explode(self):
         explosions_group.add(Explosion(self.rect.centerx, self.rect.centery,imgages= self.expl_images ))
+        self.torpedo_launch_sound.stop()
+        self.explosion_sound.play()
         self.kill()
     # def explode(self):
     #     explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, imgages=[pygame.image.load(r'sprites\explosions\rocket_explosions\explosion_1.png').convert_alpha(),pygame.image.load(r'sprites\explosions\rocket_explosions\explosion_2.png').convert_alpha(),
@@ -1486,16 +1511,16 @@ while is_working:
                         hazard.hp -= projectile.damage
                         projectile.hit()    
         
-        for hazard in hazard_group:
-            if not player.invincible and player.alive:
-                if pygame.sprite.spritecollide(hazard, player_group, False, pygame.sprite.collide_mask):
-                            hazard.hp -= 5
-                            player.hp -= 1
-            for enemy in enemy_group:
-                if pygame.sprite.spritecollide(enemy, hazard_group, False, pygame.sprite.collide_rect):
-                    if pygame.sprite.spritecollide(enemy, hazard_group, False, pygame.sprite.collide_mask):
-                        hazard.hp -= 5
-                        enemy.hp -= 1
+        # for hazard in hazard_group:
+        #     if not player.invincible and player.alive:
+        #         if pygame.sprite.spritecollide(hazard, player_group, False, pygame.sprite.collide_mask):
+        #                     hazard.hp -= 5
+        #                     player.hp -= 1
+        #     for enemy in enemy_group:
+        #         if pygame.sprite.spritecollide(enemy, hazard_group, False, pygame.sprite.collide_rect):
+        #             if pygame.sprite.spritecollide(enemy, hazard_group, False, pygame.sprite.collide_mask):
+        #                 hazard.hp -= 5
+        #                 enemy.hp -= 1
         
         for hazard in hazard_group:
             if hazard.rect.right <0:
