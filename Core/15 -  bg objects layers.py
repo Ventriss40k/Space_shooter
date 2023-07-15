@@ -1,7 +1,7 @@
 import pygame
 import random
 from random import randint
-from pygame.constants import QUIT, K_UP, K_DOWN, K_RIGHT, K_LEFT, K_SPACE, K_LCTRL, K_1, K_2, K_3, K_4
+from pygame.constants import QUIT, K_UP, K_DOWN, K_RIGHT, K_LEFT, K_SPACE, K_LCTRL, K_x, K_1, K_2, K_3, K_4
 import math
 from pygame.math import Vector2
 from PIL import Image
@@ -136,7 +136,7 @@ class MainMenu(pygame.sprite.Sprite):
         self.buttons_group.update()
         self.buttons_group.draw(screen)
         
-class LoadongScreen(pygame.sprite.Sprite):
+class LoadingScreen(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load(r"sprites\Art.png").convert_alpha()
@@ -398,7 +398,7 @@ class HorizontalProjectile(pygame.sprite.Sprite):
 
 
 class Player(pygame.sprite.Sprite):
-    def __init__ (self, x,y, speed):
+    def __init__ (self, x,y, speed = 10):
         pygame.sprite.Sprite.__init__(self)
         self.imgage_scale = 0.14
         # self.image_straight = pygame.image.load("sprites\player\miner_default.png").convert_alpha()
@@ -500,9 +500,29 @@ class Player(pygame.sprite.Sprite):
         smoke_particles_group.add(SmokeParticle([self.rect.centerx - 15, self.rect.centery-8], color = pygame.Color('darkslategray1'), speed_x= self.vel_x-1, speed_y = self.vel_y-1, deviation_y =0, lifetime=6, size_multiplyer=0.85, minsize=4, maxsize=4))
 
     def stabilize_x(self):
-        pass
+        if self.vel_x >0:
+            self.move_left()
+            if self.vel_x <0:
+                self.vel_x =0
+        elif self.vel_x <0:
+            self.move_right()
+            if self.vel_x >0:
+                self.vel_x =0        
+
     def stabilize_y(self):
-            pass
+        if self.vel_y >0:
+            self.move_up()
+            if self.vel_y <0:
+                self.vel_y =0
+        elif self.vel_y <0:
+            self.move_down()
+            if self.vel_y >0:
+                self.vel_y =0 
+
+    def stabilize(self):
+        self.stabilize_x()
+        self.stabilize_y()
+
     def update(self):
 
         self.rect.center = self.pos
@@ -599,7 +619,8 @@ class PlayerInterface():
         self.progress = 0
         self.level_n_pos = (screen_width - 140, 0)
         self.progress_pos = (screen_width - 140, 20)
-        
+        self.vel_x_pos = (0, screen_height - 80)
+        self.vel_y_pos = (0, screen_height - 60)
     def update(self):
         self.hp = player.hp
         self.hp_obj = self.font.render(f"Hull integrity: {self.hp}", True, self.color)
@@ -610,11 +631,18 @@ class PlayerInterface():
         self.progress = int(level.progress)
         self.progress_obj = self.font.render(f"Completed: {self.progress}%", True, self.color)
 
+        self.vel_x = round(player.vel_x,2)
+        self.vel_x_obj = self.font.render(f"X vel: {self.vel_x}", True, self.color)
+        self.vel_y = round(player.vel_y,2)
+        self.vel_y_obj = self.font.render(f"Y vel: {self.vel_y}", True, self.color)
+
     def draw(self):
         screen.blit(self.hp_obj, self.hp_pos)
         screen.blit(self.gun_obj, self.gun_pos)
         screen.blit(self.level_n_obj, self.level_n_pos)
         screen.blit(self.progress_obj, self.progress_pos)
+        screen.blit(self.vel_x_obj, self.vel_x_pos)
+        screen.blit(self.vel_y_obj, self.vel_y_pos)
         # self.cooldown_max = 17
         # self.cooldown = 25
 class SmokeParticle(pygame.sprite.Sprite):
@@ -1431,7 +1459,7 @@ def hazard_gen():
 main_menu = MainMenu()
 pause_menu = PauseMenu()
 player_group = pygame.sprite.Group()
-loading_screen = LoadongScreen()
+loading_screen = LoadingScreen()
 bg2_obj_group = pygame.sprite.Group()
 bg3_obj_group = pygame.sprite.Group()
 paused = False
@@ -1492,7 +1520,8 @@ while is_working:
             # if pressed_keys[K_SPACE]:
             if pressed_keys[K_LCTRL]: # fixes bug, when pressing left, down and space, and movement stalls
                 player.shoot()   
-
+            if pressed_keys[K_x]:
+                player.stabilize()
 
 
 
