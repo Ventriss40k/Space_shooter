@@ -425,6 +425,7 @@ class Player(pygame.sprite.Sprite):
         pygame_image = pygame.image.fromstring(resized_image.tobytes(), resized_image.size, resized_image.mode).convert_alpha()
         self.image_down = pygame_image
 
+
         # self.image_straight = Image.open("sprites\player\miner_default.png")
         # self.image_straight1 = self.image_straight.resize(self.image_straight.tobytes(), self.image_straight.width*self.imgage_scale, self.image_straight.height * self.imgage_scale,)
         # self.image_straight = pygame.image.fromstring(self.image_straight1.tobytes(), self.image_straight1.size, self.image_straight1.mode)
@@ -447,6 +448,11 @@ class Player(pygame.sprite.Sprite):
         self.alive = True
         self.hp = 100
         self.gun = BasicGun()
+
+
+        
+        self.x_limit = self.rect.width//2 + 10
+        self.y_limit = self.rect.height//2 - 30
         # autopilot related
         self.controllable = False
         self.spawned = False
@@ -508,9 +514,22 @@ class Player(pygame.sprite.Sprite):
             self.spawn()
         if level.progress >=100:
             self.disengage()
-       
+
         self.pos[0] += self.vel_x
+        if self.pos[0] < self.x_limit:
+            self.pos[0] = self.x_limit
+            self.vel_x = 0
+        elif self.pos[0] > screen_width - self.x_limit:
+            self.pos[0] = screen_width - self.x_limit
+            self.vel_x = 0
         self.pos[1] += self.vel_y
+        if self.pos[1] < self.y_limit:
+            self.pos[1] = self.y_limit
+            self.vel_y = 0
+        elif self.pos[1] > screen_height -self.y_limit:
+            self.pos[1] = screen_height -self.y_limit
+            self.vel_y = 0
+            
         if self.spawned_arrived and not self.disengaging:
             smoke_particles_group.add(SmokeParticle([self.rect.left + 20, self.rect.centery], color = pygame.Color('darkslategray1'), speed_x= -self.speed, speed_y = self.vel_y, deviation_y =0, lifetime=10, size_multiplyer=0.8, minsize=7, maxsize=7))
         
@@ -749,14 +768,14 @@ class Asteroid(pygame.sprite.Sprite):
         self.spawn_distance = spawn_distance
         self.y = randint(-140, screen_height + 140)
         self.rect.center = [x,self.y]
-        self.vel_x = randint(2,5)*-1
+        self.vel_x = random.uniform(1,4)*-1
         if y_min_max == "default":
             if self.y >=0 and self.y <=screen_height:
                 self.vel_y = randint(-2,2)
             elif self.y > screen_height:
-                self.vel_y = randint(-2,-0)
+                self.vel_y = random.uniform(-1.5,-0)
             elif self.y < 0:
-                self.vel_y = randint(0, 2)
+                self.vel_y = random.uniform(0, 1.5)
         else:
             self.vel_y = random.uniform(y_min_max[0], y_min_max[1])  
         self.hp = self.area//1000*25
@@ -1229,7 +1248,10 @@ class Torpedo(pygame.sprite.Sprite):
         self.target = target
         self.torpedo_launch_sound = pygame.mixer.Sound(r"sounds\homing missile launch.wav")
         self.explosion_sound = pygame.mixer.Sound(r"sounds\torpedo explosion.wav")
+        self.explosion_sound.set_volume(0.3)
+        self.explosion_sound.set_volume(0.3)
         self.torpedo_launch_sound.play()
+
     def update(self):
         if self.image_counter >= self.image_max_counter:
             self.image_counter = 0
@@ -1257,7 +1279,7 @@ class Torpedo(pygame.sprite.Sprite):
     def explode(self):
         explosions_group.add(Explosion(self.rect.centerx, self.rect.centery,imgages= self.expl_images ))
         self.torpedo_launch_sound.stop()
-        self.explosion_sound.play()
+        # self.explosion_sound.play()
         self.kill()
     # def explode(self):
     #     explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, imgages=[pygame.image.load(r'sprites\explosions\rocket_explosions\explosion_1.png').convert_alpha(),pygame.image.load(r'sprites\explosions\rocket_explosions\explosion_2.png').convert_alpha(),
@@ -1317,7 +1339,7 @@ class EnemyFormation():
         return new_enemy_lst
         
 
-
+0
 def enemy_gen():
     enemy_points = round(level.level_lenght* level.difficulty//100)
     points_per_span = enemy_points//10
