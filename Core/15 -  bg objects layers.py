@@ -12,6 +12,9 @@ from PIL import Image
 pygame.init()
 pygame.mixer.init()
 pygame.mixer.set_num_channels(32)
+pygame.display.set_caption("Space shooter")
+icon = pygame.image.load(r"sprites\player\Fighter-3.png")
+pygame.display.set_icon(icon)
 
 fps = pygame.time.Clock()
 user_screen_stats = pygame.display.Info()
@@ -186,8 +189,8 @@ class MlBackground(pygame.sprite.Sprite):
         self.layer3_pos["x1"] -= self.layer3_speed
         self.layer3_pos["x2"] -= self.layer3_speed
         if self.bg2_obj_counter == self.bg2_obj_counter_max:
-            bg2_obj_group.add(Asteroid(root_folder=r"sprites\asteroid\asteroids_plan_2\asteroid_plan2_", y_min_max=[-0.2,0.2]))
-            bg3_obj_group.add(Asteroid(root_folder=r"sprites\asteroid\asteroids_plan_3\asteroid_plan3_", y_min_max=[-0.2,0.2]))
+            bg2_obj_group.add(Asteroid(type= "bg2", y_min_max=[-0.2,0.2]))
+            bg3_obj_group.add(Asteroid(type= "bg3", y_min_max=[-0.2,0.2]))
             self.bg2_obj_counter = 0
         self.bg2_obj_counter +=1
         bg2_obj_group.update()
@@ -695,7 +698,7 @@ class Explosion (pygame.sprite.Sprite):
 
 
 class Asteroid(pygame.sprite.Sprite):
-    def __init__(self, spawn_distance = 0, x =screen_width+150, y=0, scale_min = 0.2, scale_max= 1, y_min_max ="default", scale = "random", root_folder =r"sprites\asteroid\asteroids_plan_1 (300х300)\asteroid_plan1_" ):
+    def __init__(self, type ="simple", spawn_distance = 0, x =screen_width+150, y=0, scale_min = 0.2, scale_max= 1, y_min_max ="default", scale = "random", ):
         pygame.sprite.Sprite.__init__(self)
         if scale == "random":
             self.scale = random.uniform(scale_min, scale_max)
@@ -705,14 +708,37 @@ class Asteroid(pygame.sprite.Sprite):
         # self.image = pygame.image.load(fr"sprites\asteroid\asteroid_plan1_1.png").convert_alpha()
         # self.image = pygame.transform.scale(self.image,(self.image.get_size()[0]*self.scale , self.image.get_size()[1]*self.scale))
         
+        self.type = type
+        if self.type == "simple":
+            self.root_folder = r"sprites\asteroids\simple\\"
+        elif self.type == "copper":
+            self.root_folder = r"sprites\asteroids\copper\\"
+        elif self.type == "gold":
+            self.root_folder = r"sprites\asteroids\gold\\"
+        elif self.type == "ice":
+            self.root_folder = r"sprites\asteroids\ice\\"
+        elif self.type == "iron":
+            self.root_folder = r"sprites\asteroids\iron\\"
+        elif self.type == "platinum":
+            self.root_folder = r"sprites\asteroids\platinum\\"
+        elif self.type == "silver":
+            self.root_folder = r"sprites\asteroids\silver\\"
+        elif self.type == "titan":
+            self.root_folder = r"sprites\asteroids\titan\\"
+        elif self.type == "uranium":
+            self.root_folder = r"sprites\asteroids\uranium\\"
+        elif self.type == "bg2":
+            self.root_folder = r"sprites\asteroids\Background\bg2\\"
+        elif self.type == "bg3":
+            self.root_folder = r"sprites\asteroids\Background\bg3\\"       
 
-        original_image = Image.open(fr"{root_folder}{self.image_n}.png")
+        original_image = Image.open(fr"{self.root_folder}{self.image_n}.png")
         resized_image = original_image.resize((int(original_image.width *self.scale), int(original_image.height *self.scale)), resample=Image.Resampling.LANCZOS)
         pygame_image = pygame.image.fromstring(resized_image.tobytes(), resized_image.size, resized_image.mode).convert_alpha()
         self.image = pygame_image
         self.def_image = self.image
 
-
+        
         self.def_rect = self.def_image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         self.rotation_period = randint(int(self.scale), int(self.scale*1.5))
@@ -781,7 +807,7 @@ class Enemy (pygame.sprite.Sprite):
         self.spawn_distance = spawn_distance
         
         self.shot_sound = pygame.mixer.Sound(r"sounds\enemy shot.wav")
-
+        self.shot_sound.set_volume(0.3)
         self.proj_color = pygame.Color("orchid2")
         self.proj_speed_x = -6
         self.proj_speed_y = 0
@@ -890,7 +916,8 @@ class Enemy (pygame.sprite.Sprite):
         else:
             for hazard in hazard_group:
                 if hazard.rect.centery + deviation >= self.rect.centery and player.rect.centery - deviation <= self.rect.centery and self.rect.centerx - hazard.rect.centerx <=300:
-                    self.shoot()            
+                    self.shoot()   
+                    break         
 
     def fly_left_shoot(self):
         self.fly_left()
@@ -1330,9 +1357,12 @@ def hazard_gen():
     distance_span = level.level_lenght//150
     min_dist = 0
     max_dist = distance_span
+    asteroid_types = ["simple", "copper", "iron", "ice", "titan", "gold", "platinum", "uranium"]
+    asteroid_chances = [0.60, 0.10, 0.10, 0.05, 0.05, 0.05, 0.025, 0.025 ]
     level.hazard_spawn_list =[]
     for i in range(int(level.level_lenght//distance_span* hazard_level)):
-        level.hazard_spawn_list.append(Asteroid(spawn_distance=randint(min_dist,max_dist)))
+        asteroid_type = random.choices(asteroid_types, asteroid_chances)[0]
+        level.hazard_spawn_list.append(Asteroid(type = asteroid_type, spawn_distance=randint(min_dist,max_dist)))
         min_dist += distance_span
         max_dist += distance_span
 
