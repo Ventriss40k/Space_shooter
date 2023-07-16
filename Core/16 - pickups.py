@@ -904,7 +904,7 @@ class Asteroid(pygame.sprite.Sprite):
                 self.vel_y = random.uniform(0, 1)
         else:
             self.vel_y = random.uniform(y_min_max[0], y_min_max[1])  
-        self.hp = self.area//1000*25
+        self.hp = int(25* self.scale)**2
         if self.hp <= 0:
             self.hp = 35
         self.pos = [x, self.y]
