@@ -886,9 +886,9 @@ class Asteroid(pygame.sprite.Sprite):
         
         self.def_rect = self.def_image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
-        self.rotation_period = randint(int(self.scale), int(self.scale*1.5))
-        self.rotation_counter = 0
-        self.current_angle = 0
+        # self.rotation_period = randint(int(self.scale), int(self.scale*1.5))
+        # self.rotation_counter = 0
+        # self.current_angle = 0
         self.area = self.image.get_width()*self.image.get_height()
         self.rect = self.image.get_rect()
         self.spawn_distance = spawn_distance
@@ -908,7 +908,7 @@ class Asteroid(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.hp = 35
         self.pos = [x, self.y]
-
+        self.rect.center = self.pos
 
 
 
