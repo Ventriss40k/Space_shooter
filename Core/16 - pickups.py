@@ -492,7 +492,7 @@ class Player(pygame.sprite.Sprite):
         self.vel_x = 0
         self.vel_y = 0
         # bonus colection related
-        self.search_radius = 100
+        self.search_radius = 150
         self.search_rect = pygame.Rect(100, 100, self.search_radius*2, self.search_radius*2)
         self.search_rect.center = self.rect.center
 
@@ -555,12 +555,20 @@ class Player(pygame.sprite.Sprite):
                 pygame.draw.line(screen, pygame.color.Color("Cyan"), bonus.rect.center, self.rect.center, 1)
                 if bonus.rect.centerx > self.rect.centerx:
                     bonus.speed_xy[0] = -5
+                    if bonus.rect.centerx < self.rect.centerx:
+                        bonus.rect.centerx = self.rect.centerx
                 elif bonus.rect.centerx < self.rect.centerx:
                     bonus.speed_xy[0] = 5
+                    if bonus.rect.centerx > self.rect.centerx:
+                        bonus.rect.centerx = self.rect.centerx
                 if bonus.rect.centery > self.rect.centery:
                     bonus.speed_xy[1] = -5
+                    if bonus.rect.centery < self.rect.centery:
+                        bonus.rect.centery = self.rect.centery
                 elif bonus.rect.centery < self.rect.centery:
                     bonus.speed_xy[1] = 5
+                    if bonus.rect.centery > self.rect.centery:
+                        bonus.rect.centery = self.rect.centery
     def update(self):
 
         self.rect.center = self.pos
