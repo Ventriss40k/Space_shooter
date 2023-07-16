@@ -881,10 +881,10 @@ class Asteroid(pygame.sprite.Sprite):
         resized_image = original_image.resize((int(original_image.width *self.scale), int(original_image.height *self.scale)), resample=Image.Resampling.LANCZOS)
         pygame_image = pygame.image.fromstring(resized_image.tobytes(), resized_image.size, resized_image.mode).convert_alpha()
         self.image = pygame_image
-        self.def_image = self.image
+        
 
         
-        self.def_rect = self.def_image.get_rect()
+        # self.def_rect = self.def_image.get_rect()
         self.mask = pygame.mask.from_surface(self.image)
         # self.rotation_period = randint(int(self.scale), int(self.scale*1.5))
         # self.rotation_counter = 0
@@ -908,7 +908,7 @@ class Asteroid(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.hp = 35
         self.pos = [x, self.y]
-        self.rect.center = self.pos
+        
 
 
 
@@ -924,12 +924,14 @@ class Asteroid(pygame.sprite.Sprite):
         #     self.mask = pygame.mask.from_surface(self.image)
         #     self.current_angle+=0.4
             # self.rect.center = self.pos
-        self.rect.center = (self.def_image.get_rect().centerx - int(self.image.get_width()//2) +50, self.def_image.get_rect().centery - (self.image.get_height()//2)+50)
-        self.rect.centerx += self.pos[0]
-        self.rect.centery += self.pos[1]
-    
+        # self.rect.center = (self.def_image.get_rect().centerx - int(self.image.get_width()//2) +50, self.def_image.get_rect().centery - (self.image.get_height()//2)+50)
         self.pos[0] += self.vel_x
         self.pos[1] += self.vel_y
+        self.rect.center = self.pos
+        # self.rect.centerx += self.pos[0]
+        # self.rect.centery += self.pos[1]
+    
+
         if self.hp <=0:
             # hazard_group.add(Asteroid(x= self.pos[0], y= self.pos[1]))
             self.explode()
@@ -1682,13 +1684,13 @@ while is_working:
             if projectile.rect.right <0:
                 projectile.kill()
             if not player.invincible and player.alive:
-                if pygame.sprite.spritecollide(projectile, player_group, False, pygame.sprite.collide_rect):
-                    if pygame.sprite.spritecollide(projectile, player_group, False, pygame.sprite.collide_mask):
+                if projectile.rect.colliderect(player.rect):
+                    if pygame.sprite.collide_mask(player, projectile):
                         projectile.hit()
                         player.hp -= projectile.damage
             for hazard in hazard_group:
-                if pygame.sprite.spritecollide(projectile, hazard_group, False, pygame.sprite.collide_rect):
-                    if pygame.sprite.spritecollide(projectile, hazard_group, False, pygame.sprite.collide_mask):
+                if projectile.rect.colliderect(hazard.rect):
+                    if pygame.sprite.collide_mask(hazard, projectile):
                         hazard.hp -= projectile.damage
                         projectile.hit()
 
@@ -1702,11 +1704,11 @@ while is_working:
                         projectile.hit()
                         enemy.hp -= projectile.damage
             for hazard in hazard_group:
-                if pygame.sprite.spritecollide(projectile, hazard_group, False, pygame.sprite.collide_rect):
-                    if pygame.sprite.spritecollide(projectile, hazard_group, False, pygame.sprite.collide_mask):
+                if projectile.rect.colliderect(hazard.rect):
+                    if pygame.sprite.collide_mask(hazard, projectile):
                         hazard.hp -= projectile.damage
                         projectile.hit()    
-        
+
         # for hazard in hazard_group:
         #     if not player.invincible and player.alive:
         #         if pygame.sprite.spritecollide(hazard, player_group, False, pygame.sprite.collide_mask):
