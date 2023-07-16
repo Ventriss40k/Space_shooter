@@ -914,7 +914,7 @@ class Asteroid(pygame.sprite.Sprite):
             self.kill()
     
     def explode(self):
-        explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, diameter= self.rect.height*1.4, imgages=asteroid_explosion_imgs, lifetime = 60, speed_xy=[self.vel_x, self.vel_y]))
+        explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, diameter= self.rect.height*1.8, imgages=asteroid_explosion_imgs, lifetime = 70, speed_xy=[self.vel_x, self.vel_y]))
         bonus_group.add(Bonus(self.rect.center,[self.vel_x, self.vel_y]))
         self.kill()      
 
