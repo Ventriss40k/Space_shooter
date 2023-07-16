@@ -32,6 +32,27 @@ bg = pygame.transform.scale(bg, (screen_width, screen_height))
 # CREATE_ENEMY = pygame.USEREVENT+1
 # pygame.time.set_timer(CREATE_ENEMY, 5000)
 
+# сommon images
+asteroid_explosion_imgs = [
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_1.png").convert_alpha(), 
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_2.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_3.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_4.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_5.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_6.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_7.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_8.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_9.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_10.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_11.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_12.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_13.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_14.png").convert_alpha(),
+            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_15.png").convert_alpha()
+        ]
+
+
+
 # Pause related
 class Button(pygame.sprite.Sprite):
     def __init__(self, text, x, y, font_size):
@@ -532,7 +553,14 @@ class Player(pygame.sprite.Sprite):
         for bonus in bonus_group:
             if self.search_rect.collidepoint(bonus.rect.center):
                 pygame.draw.line(screen, pygame.color.Color("Cyan"), bonus.rect.center, self.rect.center, 1)
-
+                if bonus.rect.centerx > self.rect.centerx:
+                    bonus.speed_xy[0] = -5
+                elif bonus.rect.centerx < self.rect.centerx:
+                    bonus.speed_xy[0] = 5
+                if bonus.rect.centery > self.rect.centery:
+                    bonus.speed_xy[1] = -5
+                elif bonus.rect.centery < self.rect.centery:
+                    bonus.speed_xy[1] = 5
     def update(self):
 
         self.rect.center = self.pos
@@ -730,7 +758,7 @@ class FirePartickle(pygame.sprite.Sprite):
 #             self.image = pygame.image.load(r"sprites\explosions\explosion-2.png")
 
 class Explosion (pygame.sprite.Sprite):
-    def __init__(self, x, y, lifetime =40, diameter = 100, imgages = [pygame.image.load(r"sprites\explosions\explosion-1.png"), pygame.image.load(r"sprites\explosions\explosion-2.png"),
+    def __init__(self, x, y,speed_xy =[0,0], lifetime =40, diameter = 100, imgages = [pygame.image.load(r"sprites\explosions\explosion-1.png"), pygame.image.load(r"sprites\explosions\explosion-2.png"),
                                                                       pygame.image.load(r"sprites\explosions\explosion-3.png"),pygame.image.load(r"sprites\explosions\explosion-2.png")]):
         pygame.sprite.Sprite.__init__(self)
         
@@ -744,7 +772,10 @@ class Explosion (pygame.sprite.Sprite):
         self.image = pygame.transform.scale(self.image,(self.diameter, self.diameter))
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
+        self.speed_xy = speed_xy
     def update(self):
+        self.rect.centerx += self.speed_xy[0]
+        self.rect.centery += self.speed_xy[1]
         self.counter+=1 
         if self.counter>=self.frame_time:
             self.counter=0
@@ -846,7 +877,10 @@ class Asteroid(pygame.sprite.Sprite):
         if self.hp <= 0:
             self.hp = 35
         self.pos = [x, self.y]
-        
+
+
+
+
     def update(self):
         # rotation
         # self.rotation_counter +=1
@@ -872,7 +906,7 @@ class Asteroid(pygame.sprite.Sprite):
             self.kill()
     
     def explode(self):
-        explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, diameter= self.rect.height*1.4))
+        explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, diameter= self.rect.height*1.4, imgages=asteroid_explosion_imgs, lifetime = 60, speed_xy=[self.vel_x, self.vel_y]))
         bonus_group.add(Bonus(self.rect.center,[self.vel_x, self.vel_y]))
         self.kill()      
 
