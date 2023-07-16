@@ -174,8 +174,8 @@ class MlBackground(pygame.sprite.Sprite):
         self.layer2_pos = {"x1": screen_width//3, "x2": self.layer2_img.get_width()}
         self.layer3_pos = {"x1": 0, "x2": self.layer3_img.get_width()}
         # speed of each layer. 
-        self.layer1_speed = 0.1
-        self.layer2_speed = 0.2
+        self.layer1_speed = 0.3
+        self.layer2_speed = 0.45
         self.layer3_speed = 2
 
         self.bg2_obj_counter_max = 25
@@ -189,8 +189,8 @@ class MlBackground(pygame.sprite.Sprite):
         self.layer3_pos["x1"] -= self.layer3_speed
         self.layer3_pos["x2"] -= self.layer3_speed
         if self.bg2_obj_counter == self.bg2_obj_counter_max:
-            bg2_obj_group.add(Asteroid(type= "bg2", y_min_max=[-0.2,0.2]))
-            bg3_obj_group.add(Asteroid(type= "bg3", y_min_max=[-0.2,0.2]))
+            bg2_obj_group.add(Asteroid(type= "bg2", y_min_max=[-0.2,0.2], x_min = 1.2, x_max=1.5))
+            bg3_obj_group.add(Asteroid(type= "bg3", y_min_max=[-0.2,0.2], x_min = 0.5, x_max = 0.8 ))
             self.bg2_obj_counter = 0
         self.bg2_obj_counter +=1
         bg2_obj_group.update()
@@ -391,7 +391,7 @@ class HorizontalProjectile(pygame.sprite.Sprite):
     def muzzle_flash(self):
         if self.rect.centerx > 15 and self.rect.centerx < screen_width-15:
             for i in range(3):
-                smoke_particles_group.add(SmokeParticle(self.pos, color = self.color, speed_x=self.speed_x//5.5, speed_y=self.speed_y//5))
+                smoke_particles_group.add(SmokeParticle(self.pos, color = self.color, speed_x=self.speed_x/ 4.5, speed_y=self.speed_y//5, maxsize= 6, minsize = 5))
 
 
 
@@ -534,21 +534,21 @@ class Player(pygame.sprite.Sprite):
             self.spawn()
         if level.progress >=100:
             self.disengage()
-
-        self.pos[0] += self.vel_x
-        if self.pos[0] < self.x_limit:
-            self.pos[0] = self.x_limit
-            self.vel_x = 0
-        elif self.pos[0] > screen_width - self.x_limit:
-            self.pos[0] = screen_width - self.x_limit
-            self.vel_x = 0
-        self.pos[1] += self.vel_y
-        if self.pos[1] < self.y_limit:
-            self.pos[1] = self.y_limit
-            self.vel_y = 0
-        elif self.pos[1] > screen_height -self.y_limit:
-            self.pos[1] = screen_height -self.y_limit
-            self.vel_y = 0
+        if self.controllable:
+            self.pos[0] += self.vel_x
+            if self.pos[0] < self.x_limit:
+                self.pos[0] = self.x_limit
+                self.vel_x = 0
+            elif self.pos[0] > screen_width - self.x_limit:
+                self.pos[0] = screen_width - self.x_limit
+                self.vel_x = 0
+            self.pos[1] += self.vel_y
+            if self.pos[1] < self.y_limit:
+                self.pos[1] = self.y_limit
+                self.vel_y = 0
+            elif self.pos[1] > screen_height -self.y_limit:
+                self.pos[1] = screen_height -self.y_limit
+                self.vel_y = 0
             
         if self.spawned_arrived and not self.disengaging:
             smoke_particles_group.add(SmokeParticle([self.rect.left + 20, self.rect.centery], color = pygame.Color('darkslategray1'), speed_x= -self.speed, speed_y = self.vel_y, deviation_y =0, lifetime=10, size_multiplyer=0.8, minsize=7, maxsize=7))
@@ -745,7 +745,7 @@ class Explosion (pygame.sprite.Sprite):
 
 
 class Asteroid(pygame.sprite.Sprite):
-    def __init__(self, type ="simple", spawn_distance = 0, x =screen_width+150, y=0, scale_min = 0.2, scale_max= 1, y_min_max ="default", scale = "random", ):
+    def __init__(self, type ="simple", spawn_distance = 0, x =screen_width+150, y=0, scale_min = 0.2, scale_max= 0.9, y_min_max ="default", x_min = 1.5, x_max = 3.5, scale = "random", ):
         pygame.sprite.Sprite.__init__(self)
         if scale == "random":
             self.scale = random.uniform(scale_min, scale_max)
@@ -796,14 +796,14 @@ class Asteroid(pygame.sprite.Sprite):
         self.spawn_distance = spawn_distance
         self.y = randint(-140, screen_height + 140)
         self.rect.center = [x,self.y]
-        self.vel_x = random.uniform(1,4)*-1
+        self.vel_x = random.uniform(x_min, x_max)*-1
         if y_min_max == "default":
             if self.y >=0 and self.y <=screen_height:
-                self.vel_y = randint(-2,2)
+                self.vel_y = randint(-1,1)
             elif self.y > screen_height:
-                self.vel_y = random.uniform(-1.5,-0)
+                self.vel_y = random.uniform(-1,-0)
             elif self.y < 0:
-                self.vel_y = random.uniform(0, 1.5)
+                self.vel_y = random.uniform(0, 1)
         else:
             self.vel_y = random.uniform(y_min_max[0], y_min_max[1])  
         self.hp = self.area//1000*25
