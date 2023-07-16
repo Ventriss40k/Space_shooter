@@ -5,7 +5,7 @@ from pygame.constants import QUIT, K_UP, K_DOWN, K_RIGHT, K_LEFT, K_SPACE, K_LCT
 import math
 from pygame.math import Vector2
 from PIL import Image
-
+import os
 
 
 
@@ -32,24 +32,38 @@ bg = pygame.transform.scale(bg, (screen_width, screen_height))
 # CREATE_ENEMY = pygame.USEREVENT+1
 # pygame.time.set_timer(CREATE_ENEMY, 5000)
 
+
+
+def load_images_from_folder(relative_folder_path):
+    folder_path = os.path.abspath(relative_folder_path)
+    image_list = []
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        if os.path.isfile(file_path):
+            try:
+                # Load the image using Pygame and convert_alpha() to handle transparency
+                image = pygame.image.load(file_path).convert_alpha()
+                image_list.append(image)
+            except pygame.error:
+                print("Unable to load image:", file_path)
+    return image_list
+
 # сommon images
-asteroid_explosion_imgs = [
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_1.png").convert_alpha(), 
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_2.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_3.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_4.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_5.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_6.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_7.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_8.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_9.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_10.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_11.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_12.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_13.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_14.png").convert_alpha(),
-            pygame.image.load(r"sprites\explosions\asteroid explosion\asteroid_explosion_15.png").convert_alpha()
-        ]
+
+# -- asteroid related
+asteroid_explosion_imgs = load_images_from_folder(r"sprites\explosions\asteroid explosion")
+# ---- mineral drops 
+copper_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\copper_drop")
+gold_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\gold_drop")
+ice_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\ice_drop")
+iron_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\iron_drop")
+platinum_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\platinum_drop")
+silver_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\silver_drop")
+titan_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\titan_drop")
+uranium_drop_imgs = load_images_from_folder(r"sprites\asteroids\asteroid_mineral_drop\uran_drop")
+
+
+
 
 
 
@@ -796,9 +810,9 @@ class Explosion (pygame.sprite.Sprite):
 
 
 class Bonus(pygame.sprite.Sprite):
-    def __init__(self, pos, speed_xy, type= "bonus"):
+    def __init__(self, pos, speed_xy, type= "bonus", image = pygame.image.load(r"sprites\bonus.png").convert_alpha()):
         pygame.sprite.Sprite.__init__(self)     
-        self.image = pygame.image.load(r"sprites\bonus.png").convert_alpha()
+        self.image = image
         self.rect = self.image.get_rect()
         self.pos = list(pos)
         self.rect.center = self.pos
@@ -831,24 +845,33 @@ class Asteroid(pygame.sprite.Sprite):
         # self.image = pygame.transform.scale(self.image,(self.image.get_size()[0]*self.scale , self.image.get_size()[1]*self.scale))
         
         self.type = type
+        self.drop_img = False
         if self.type == "simple":
             self.root_folder = r"sprites\asteroids\simple\\"
         elif self.type == "copper":
             self.root_folder = r"sprites\asteroids\copper\\"
+            self.drop_img = random.choice(copper_drop_imgs)
         elif self.type == "gold":
             self.root_folder = r"sprites\asteroids\gold\\"
+            self.drop_img = random.choice(copper_drop_imgs)
         elif self.type == "ice":
             self.root_folder = r"sprites\asteroids\ice\\"
+            self.drop_img = random.choice(gold_drop_imgs)
         elif self.type == "iron":
             self.root_folder = r"sprites\asteroids\iron\\"
+            self.drop_img = random.choice(iron_drop_imgs)
         elif self.type == "platinum":
             self.root_folder = r"sprites\asteroids\platinum\\"
+            self.drop_img = random.choice(platinum_drop_imgs)
         elif self.type == "silver":
             self.root_folder = r"sprites\asteroids\silver\\"
+            self.drop_img = random.choice(silver_drop_imgs)
         elif self.type == "titan":
             self.root_folder = r"sprites\asteroids\titan\\"
+            self.drop_img = random.choice(titan_drop_imgs)
         elif self.type == "uranium":
             self.root_folder = r"sprites\asteroids\uranium\\"
+            self.drop_img = random.choice(uranium_drop_imgs)
         elif self.type == "bg2":
             self.root_folder = r"sprites\asteroids\Background\bg2\\"
         elif self.type == "bg3":
@@ -915,7 +938,8 @@ class Asteroid(pygame.sprite.Sprite):
     
     def explode(self):
         explosions_group.add(Explosion(self.rect.centerx, self.rect.centery, diameter= self.rect.height*1.8, imgages=asteroid_explosion_imgs, lifetime = 70, speed_xy=[self.vel_x, self.vel_y]))
-        bonus_group.add(Bonus(self.rect.center,[self.vel_x, self.vel_y]))
+        if self.drop_img:
+            bonus_group.add(Bonus(self.rect.center,[self.vel_x, self.vel_y], image= self.drop_img))
         self.kill()      
 
 
