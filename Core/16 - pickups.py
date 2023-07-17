@@ -880,10 +880,10 @@ class Asteroid(pygame.sprite.Sprite):
             self.drop_img = random.choice(copper_drop_imgs)
         elif self.type == "gold":
             self.root_folder = r"sprites\asteroids\gold\\"
-            self.drop_img = random.choice(copper_drop_imgs)
+            self.drop_img = random.choice(gold_drop_imgs)
         elif self.type == "ice":
             self.root_folder = r"sprites\asteroids\ice\\"
-            self.drop_img = random.choice(gold_drop_imgs)
+            self.drop_img = random.choice(ice_drop_imgs)
         elif self.type == "iron":
             self.root_folder = r"sprites\asteroids\iron\\"
             self.drop_img = random.choice(iron_drop_imgs)
