@@ -1,3 +1,4 @@
+from typing import Any
 import pygame
 import random
 from random import randint
@@ -6,6 +7,7 @@ import math
 from pygame.math import Vector2
 from PIL import Image
 import os
+import re
 
 
 
@@ -29,15 +31,14 @@ is_working = True
 bg = pygame.image.load(r"sprites\Background_space.png").convert()
 bg = pygame.transform.scale(bg, (screen_width, screen_height))
 
-# CREATE_ENEMY = pygame.USEREVENT+1
-# pygame.time.set_timer(CREATE_ENEMY, 5000)
+def natural_sort_key(s):
+    """Key function for natural sorting (handles numerical indexes in strings)."""
+    
+    return [int(text) if text.isdigit() else text.lower() for text in re.split(r'(\d+)', s)]
 
-
-
-def load_images_from_folder(relative_folder_path):
-    folder_path = os.path.abspath(relative_folder_path)
+def load_images_from_folder(folder_path):
     image_list = []
-    for filename in os.listdir(folder_path):
+    for filename in sorted(os.listdir(folder_path), key=natural_sort_key):
         file_path = os.path.join(folder_path, filename)
         if os.path.isfile(file_path):
             try:
@@ -430,6 +431,12 @@ class HorizontalProjectile(pygame.sprite.Sprite):
                 smoke_particles_group.add(SmokeParticle(self.pos, color = self.color, speed_x=self.speed_x/ 4.5, speed_y=self.speed_y//5, maxsize= 6, minsize = 5))
 
 
+class CargoItem():
+    def __init__(self, name, description = "", amount = 1, space =1 ):
+        self.name = name 
+        self.description = description
+        self.amount = amount
+        self.space = space 
 
 
 
@@ -485,6 +492,10 @@ class Player(pygame.sprite.Sprite):
         self.hp = 100
         self.gun = BasicGun()
 
+        # cargo related
+        self.cargo_hold = []
+        self.cargo_hold_load =0
+        self.cargo_hold_max_load =40
 
         
         self.x_limit = self.rect.width//2 + 10
@@ -706,6 +717,22 @@ class PlayerInterface():
         screen.blit(self.vel_x_obj, self.vel_x_pos)
         screen.blit(self.vel_y_obj, self.vel_y_pos)
 
+class PopupText(pygame.sprite.Sprite):
+    def __init__(self, text, font_size, pos, lifetime = 30, color = pygame.color.Color("Green3")):
+        pygame.sprite.Sprite.__init__(self)
+        self.text = text
+        self.pos = pos
+        self.font_size = font_size
+        self.lifetime = lifetime
+        self.font = pygame.font.SysFont(None, self.font_size)
+        self.image = self.font.render(text, True, color)
+        self.rect = self.image.get_rect()
+    def update(self):
+        self.rect.center = self.pos
+        self.pos[1]-= 5
+        self.lifetime -=1
+        if self.lifetime <=0:
+            self.kill()
 
 
 
@@ -830,7 +857,7 @@ class Bonus(pygame.sprite.Sprite):
     def picked_up(self):
         # add resources to player
         # show text on screen
-        
+            popuptxt_group.add(PopupText("Collected", 25, self.pos))
             self.kill()
 
 class Asteroid(pygame.sprite.Sprite):
@@ -1576,6 +1603,7 @@ loading_screen = LoadingScreen()
 bg2_obj_group = pygame.sprite.Group()
 bg3_obj_group = pygame.sprite.Group()
 bonus_group = pygame.sprite.Group()
+popuptxt_group = pygame.sprite.Group()
 paused = False
 in_main_menu = True
 while is_working:
@@ -1676,7 +1704,8 @@ while is_working:
         explosions_group.update()
         explosions_group.draw(screen)
         smoke_particles_group.update()
-        
+        popuptxt_group.update()
+        popuptxt_group.draw(screen)
         
         # smoke_particles_group.draw(screen)
     # despawn objects out of screen, collisions and damage
